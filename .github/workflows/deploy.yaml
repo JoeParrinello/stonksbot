@@ -1,0 +1,26 @@
+name: Deploy a Cloud Function
+on:
+  release:
+    types: [created]
+    
+jobs:
+  job_id:
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      with:
+        name: 'setup'
+        runtime: 'python310'
+        project: ${{secrets.gcp_project}}
+        credentials: ${{ secrets.gcp_credentials }}
+
+    # Example of using the output
+    - id: 'test'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
