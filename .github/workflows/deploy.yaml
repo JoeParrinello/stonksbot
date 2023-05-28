@@ -6,6 +6,7 @@ on:
 jobs:
   job_id:
     runs-on: 'ubuntu-latest'
+    environment: "Google Cloud"
     permissions:
       contents: 'read'
       id-token: 'write'
