@@ -27,6 +27,7 @@ jobs:
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
         env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
+        timeout: 600
 
     # Example of using the output
     - id: 'test'
@@ -55,6 +56,7 @@ jobs:
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
         env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
+        timeout: 600
 
     # Example of using the output
     - id: 'test'
