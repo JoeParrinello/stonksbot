@@ -4,7 +4,7 @@ on:
     types: [created]
     
 jobs:
-  job_id:
+  deploy-setup:
     runs-on: 'ubuntu-latest'
     environment: "Google Cloud"
     permissions:
@@ -19,20 +19,39 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCLOUD_CREDENTIALS }}
 
-    - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
-      with:
-        name: 'setup'
-        entry_point: 'register_bot'
-        runtime: 'python310'
-        project_id: ${{secrets.GCLOUD_PROJECT_ID}}
-        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
-
-    - id: 'deploy'
+    - id: 'deploy-stonks'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'stonksbot'
         entry_point: 'discord_webhook'
+        runtime: 'python310'
+        project_id: ${{secrets.GCLOUD_PROJECT_ID}}
+        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
+
+    # Example of using the output
+    - id: 'test'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
+
+  deploy-stonks:
+    runs-on: 'ubuntu-latest'
+    environment: "Google Cloud"
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+    
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GCLOUD_CREDENTIALS }}
+
+    - id: 'deploy-setup'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      with:
+        name: 'setup'
+        entry_point: 'register_bot'
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
         env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
