@@ -29,15 +29,15 @@ def discord_webhook(request):
         <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
     """
     request_json = request.get_json(silent=True)
+    if request_json is None or 'type' not in request_json:
+        return "Failed to parse json", 500
 
-    if request_json and 'type' in request_json and request_json["type"] == InteractionType.PING:
+    if request_json["type"] == InteractionType.PING:
         return jsonify({
             "type": InteractionCallbackType.PONG
         })
-    return jsonify({
-        "type": InteractionCallbackType.PONG
-    })
-
+    
+    return "Success", 200
 
 @functions_framework.http
 def register_bot(request):
