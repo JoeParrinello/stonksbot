@@ -1,13 +1,13 @@
 """Module providing helpful discord types"""
-from enum import Enum
+from enum import IntEnum
 
-class ApplicationCommandType(Enum):
+class ApplicationCommandType(IntEnum):
     """Types of Commands to register a bot for."""
     CHAT_INPUT = 1
     USER = 2
     MESSAGE = 3
 
-class ApplicationCommandOptionType(Enum):
+class ApplicationCommandOptionType(IntEnum):
     """Types of input values to commands."""
     SUB_COMMAND = 1
     SUB_COMMAND_GROUP = 2
@@ -21,7 +21,7 @@ class ApplicationCommandOptionType(Enum):
     NUMBER = 10
     ATTACHMENT = 11
 
-class InteractionType(Enum):
+class InteractionType(IntEnum):
     """Types of messages received on the Discord Webhook."""
     PING = 1
     APPLICATION_COMMAND = 2
@@ -29,7 +29,7 @@ class InteractionType(Enum):
     APPLICATION_COMMAND_AUTOCOMPLETE = 4
     MODAL_SUBMIT = 5
 
-class InteractionCallbackType(Enum):
+class InteractionCallbackType(IntEnum):
     """Types of callbacks used to respond to discord commands."""
     PONG = 1
     CHANNEL_MESSAGE_WITH_SOURCE = 4
