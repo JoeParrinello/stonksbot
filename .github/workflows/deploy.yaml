@@ -18,8 +18,8 @@ jobs:
       with:
         name: 'setup'
         runtime: 'python310'
-        project: ${{secrets.gcp_project}}
-        credentials: ${{ secrets.gcp_credentials }}
+        project: ${{secrets.GCLOUD_PROJECT_ID}}
+        credentials: ${{ secrets.GCLOUD_CREDENTIALS }}
 
     # Example of using the output
     - id: 'test'
