@@ -23,6 +23,16 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'setup'
+        entry_point: 'register_bot'
+        runtime: 'python310'
+        project_id: ${{secrets.GCLOUD_PROJECT_ID}}
+        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
+
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      with:
+        name: 'stonksbot'
+        entry_point: 'discord_webhook'
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
         env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
