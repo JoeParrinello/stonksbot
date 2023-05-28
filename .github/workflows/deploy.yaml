@@ -25,6 +25,7 @@ jobs:
         name: 'setup'
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
+        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_ID}}"
 
     # Example of using the output
     - id: 'test'
