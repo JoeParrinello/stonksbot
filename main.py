@@ -13,6 +13,10 @@ name = f"projects/{project_id}/secrets/stonksbot_app_id/versions/latest"
 response = client.access_secret_version(name=name)
 stonksbot_app_id = response.payload.data.decode("UTF-8")
 
+discord_token_name = f"projects/{project_id}/secrets/stonksbot_discord_token/versions/latest"
+discord_token_response = client.access_secret_version(name=discord_token_name)
+discord_token = discord_token_response.payload.data.decode("UTF-8")
+
 @functions_framework.http
 def discord_webhook(request):
     """HTTP Cloud Function.
@@ -47,7 +51,7 @@ def register_bot(request):
         <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
     """
 
-    url = "https://discord.com/api/v10/applications/%s/commands" % stonksbot_app_id
+    url = f"https://discord.com/api/v10/applications/{stonksbot_app_id}/commands"
 
     json = {
         "name": "stonks",
@@ -63,7 +67,7 @@ def register_bot(request):
         ]
     }
     headers = {
-        "Authorization": "Bot <my_bot_token>"
+        "Authorization": f"Bot {discord_token}"
     }
     requests.post(url, headers=headers, json=json, timeout=30)
     return "Success", 200
