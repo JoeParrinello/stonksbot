@@ -37,6 +37,17 @@ def discord_webhook(request):
             "type": InteractionCallbackType.PONG
         })
     
+    if request_json["type"] == InteractionType.APPLICATION_COMMAND:
+        if 'data' in request_json:
+            command_data = request_json['data']
+            if command_data['type'] == ApplicationCommandType.CHAT_INPUT and command_data['name'] == "stonks":
+                stock_string = command_data["options"][0]["value"]
+                return jsonify({
+                    "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {"content": f"I recieved {stock_string}"}
+                })
+
+
     return "Success", 200
 
 @functions_framework.http
