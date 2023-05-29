@@ -55,7 +55,7 @@ jobs:
         entry_point: 'register_bot'
         runtime: 'python310'
         project_id: ${{secrets.GCLOUD_PROJECT_ID}}
-        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}}"
+        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}},DISCORD_APPLICATION_ID=${{vars.DISCORD_APPLICATION_ID}}"
         timeout: 540
 
     # Example of using the output
