@@ -20,7 +20,7 @@ discord_token = discord_token_response.payload.data.decode("UTF-8")
 
 
 def construct_patch_url(response_token):
-    return f"/webhooks/{stonksbot_app_id}/{response_token}/messages/@original"
+    return f"https://discord.com/api/webhooks/{stonksbot_app_id}/{response_token}/messages/@original"
 
 
 def normalize_stock_ticker(unnormalized_string):
