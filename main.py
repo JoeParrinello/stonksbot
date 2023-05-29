@@ -1,5 +1,6 @@
 """StonksBot CloudFunction."""
 import os
+import re
 from flask import jsonify
 import functions_framework
 import requests
@@ -16,6 +17,18 @@ stonksbot_app_id = response.payload.data.decode("UTF-8")
 discord_token_name = f"projects/{project_id}/secrets/stonksbot_discord_token/versions/latest"
 discord_token_response = client.access_secret_version(name=discord_token_name)
 discord_token = discord_token_response.payload.data.decode("UTF-8")
+
+
+def normalize_stock_ticker(unnormalized_string):
+    """Takes a stock ticker string, and returns the normalized string.
+
+    Returns None if there is an error.
+    """
+    match = re.fullmatch("[A-Za-z]{1,5}", unnormalized_string)
+    if match is None:
+        return None
+    
+    return unnormalized_string.upper()
 
 @functions_framework.http
 def discord_webhook(request):
@@ -42,10 +55,16 @@ def discord_webhook(request):
             command_data = request_json['data']
             if command_data['type'] == ApplicationCommandType.CHAT_INPUT and command_data['name'] == "stonks":
                 stock_string = command_data["options"][0]["value"]
+                stock_string = normalize_stock_ticker(stock_string)
+                if stock_string is not None:
+                    return jsonify({
+                        "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        "data": {"content": f"I recieved {stock_string}"}
+                    })
                 return jsonify({
-                    "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    "data": {"content": f"I recieved {stock_string}"}
-                })
+                        "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        "data": {"content": f"Invalid Stock Ticker"}
+                    }) 
 
 
     return "Success", 200
