@@ -1,6 +1,7 @@
 """StonksBot CloudFunction."""
 import os
 import re
+import finnhub_api
 from flask import jsonify
 import functions_framework
 import requests
@@ -27,8 +28,9 @@ def normalize_stock_ticker(unnormalized_string):
     match = re.fullmatch("[A-Za-z]{1,5}", unnormalized_string)
     if match is None:
         return None
-    
+
     return unnormalized_string.upper()
+
 
 @functions_framework.http
 def discord_webhook(request):
@@ -49,7 +51,7 @@ def discord_webhook(request):
         return jsonify({
             "type": InteractionCallbackType.PONG
         })
-    
+
     if request_json["type"] == InteractionType.APPLICATION_COMMAND:
         if 'data' in request_json:
             command_data = request_json['data']
@@ -57,17 +59,23 @@ def discord_webhook(request):
                 stock_string = command_data["options"][0]["value"]
                 stock_string = normalize_stock_ticker(stock_string)
                 if stock_string is not None:
+                    quote = finnhub_api.get_stock_quote(stock_string)
+                    if quote is None:
+                        return jsonify({
+                            "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            "data": {"content": "Stock Ticker Fetch Failed"}
+                        })
                     return jsonify({
                         "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        "data": {"content": f"I recieved {stock_string}"}
+                        "data": {"embeds": [quote.embeddable_message()]}
                     })
                 return jsonify({
-                        "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        "data": {"content": f"Invalid Stock Ticker"}
-                    }) 
-
+                    "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {"content": "Invalid Stock Ticker"}
+                })
 
     return "Success", 200
+
 
 @functions_framework.http
 def register_bot(request):
