@@ -19,6 +19,9 @@ discord_token_name = f"projects/{project_id}/secrets/stonksbot_discord_token/ver
 discord_token_response = client.access_secret_version(name=discord_token_name)
 discord_token = discord_token_response.payload.data.decode("UTF-8")
 
+def construct_patch_url(response_token):
+    discord_application_id = os.environ["DISCORD_APPLICATION_ID"]
+    return f"/webhooks/{discord_application_id}/{response_token}/messages/@original"
 
 def normalize_stock_ticker(unnormalized_string):
     """Takes a stock ticker string, and returns the normalized string.
@@ -53,6 +56,7 @@ def discord_webhook(request):
         })
 
     if request_json["type"] == InteractionType.APPLICATION_COMMAND:
+        response_token = request_json["token"]
         if 'data' in request_json:
             command_data = request_json['data']
             if command_data['type'] == ApplicationCommandType.CHAT_INPUT and command_data['name'] == "stonks":
