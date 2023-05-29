@@ -1,5 +1,8 @@
 """StonksBot CloudFunction."""
 import os
+import re
+import threading
+import finnhub_api
 from flask import jsonify
 import functions_framework
 import requests
@@ -8,14 +11,29 @@ from discord_types import ApplicationCommandType, ApplicationCommandOptionType, 
 
 
 project_id = os.environ["PROJECT_ID"]
-client = secretmanager.SecretManagerServiceClient()
-name = f"projects/{project_id}/secrets/stonksbot_app_id/versions/latest"
-response = client.access_secret_version(name=name)
-stonksbot_app_id = response.payload.data.decode("UTF-8")
+stonksbot_app_id = os.environ["DISCORD_APPLICATION_ID"]
 
+client = secretmanager.SecretManagerServiceClient()
 discord_token_name = f"projects/{project_id}/secrets/stonksbot_discord_token/versions/latest"
 discord_token_response = client.access_secret_version(name=discord_token_name)
 discord_token = discord_token_response.payload.data.decode("UTF-8")
+
+
+def construct_patch_url(response_token):
+    return f"/webhooks/{stonksbot_app_id}/{response_token}/messages/@original"
+
+
+def normalize_stock_ticker(unnormalized_string):
+    """Takes a stock ticker string, and returns the normalized string.
+
+    Returns None if there is an error.
+    """
+    match = re.fullmatch("[A-Za-z]{1,5}", unnormalized_string)
+    if match is None:
+        return None
+
+    return unnormalized_string.upper()
+
 
 @functions_framework.http
 def discord_webhook(request):
@@ -36,19 +54,44 @@ def discord_webhook(request):
         return jsonify({
             "type": InteractionCallbackType.PONG
         })
-    
+
     if request_json["type"] == InteractionType.APPLICATION_COMMAND:
+        response_token = request_json["token"]
         if 'data' in request_json:
             command_data = request_json['data']
             if command_data['type'] == ApplicationCommandType.CHAT_INPUT and command_data['name'] == "stonks":
                 stock_string = command_data["options"][0]["value"]
+                stock_string = normalize_stock_ticker(stock_string)
+                if stock_string is not None:
+                    thread = threading.Thread(target=run_quote_thread, args=(response_token, stock_string))
+                    thread.start()
+                    return jsonify({
+                    "type": InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {"content": "Fetching stock price"}
+                })
                 return jsonify({
                     "type": InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    "data": {"content": f"I recieved {stock_string}"}
+                    "data": {"content": "Invalid Stock Ticker"}
                 })
 
-
     return "Success", 200
+
+
+def run_quote_thread(response_token, stock_ticker):
+    quote = finnhub_api.get_stock_quote(stock_ticker)
+    json = {
+        "content": "Stock Ticker Fetch Failed",
+    }
+    if quote is not None:
+        json = {
+            "embeds": [quote.embeddable_message()],
+        }
+    
+    headers = {
+        "Authorization": f"Bot {discord_token}"
+    }
+    requests.patch(construct_patch_url(response_token), headers=headers, json=json, timeout=30)
+
 
 @functions_framework.http
 def register_bot(request):
