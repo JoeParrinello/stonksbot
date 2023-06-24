@@ -4,7 +4,7 @@ on:
     types: [created]
     
 jobs:
-  deploy-setup:
+  deploy-stonks:
     runs-on: 'ubuntu-latest'
     environment: "Google Cloud"
     permissions:
@@ -31,11 +31,23 @@ jobs:
         env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}},DISCORD_APPLICATION_ID=${{vars.DISCORD_APPLICATION_ID}}"
         timeout: 540
 
+    - id: 'deploy-quote'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      with:
+        name: 'stonksbot'
+        entry_point: 'quote_stocks'
+        runtime: 'python310'
+        project_id: ${{secrets.GCLOUD_PROJECT_ID}}
+        min_instances: 1
+        max_instances: 5
+        env_vars: "PROJECT_ID=${{secrets.GCLOUD_PROJECT_NUM}},DISCORD_APPLICATION_ID=${{vars.DISCORD_APPLICATION_ID}}"
+        timeout: 540
+
     # Example of using the output
     - id: 'test'
-      run: 'curl "${{ steps.deploy.outputs.url }}"'
+      run: 'curl "${{ steps.deploy-stonks.outputs.url }}"'
 
-  deploy-stonks:
+  deploy-setup:
     runs-on: 'ubuntu-latest'
     environment: "Google Cloud"
     permissions:
@@ -62,4 +74,4 @@ jobs:
 
     # Example of using the output
     - id: 'test'
-      run: 'curl "${{ steps.deploy.outputs.url }}"'
+      run: 'curl "${{ steps.deploy-setup.outputs.url }}"'
